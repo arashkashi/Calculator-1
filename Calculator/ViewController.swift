@@ -8,6 +8,7 @@
 
 import UIKit
 import DeviceKit
+import Combine
 
 class ViewController: UIViewController {
     
@@ -17,6 +18,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var cornerView: UIView!
     @IBOutlet weak var display: UILabel!
     
+    
+    @IBOutlet weak var plusButton: UIButton!
+    
     //MARK: Variables
     
     private var brain = CalculatorBrain()
@@ -24,7 +28,7 @@ class ViewController: UIViewController {
     
     var iPhoneModel: Device {
         get {
-            return Device()
+            return Device.current
         }
     }
     
@@ -54,8 +58,32 @@ class ViewController: UIViewController {
         if iPhoneModel == .iPhoneX || iPhoneModel == .simulator(.iPhoneX){
             cornerView.layer.cornerRadius = 35
             cornerView.layer.masksToBounds = true
-        } 
+        }
+        
+        NotificationCenter.default.publisher(for: .AsyncOperationStarted).sink { _ in
+            self.view.displayAnimatedActivityIndicatorView()
+        }.store(in: &bag)
+        
+        NotificationCenter.default.publisher(for: .AsyncOperationEnded).sink { _ in
+            self.view.hideAnimatedActivityIndicatorView()
+        }.store(in: &bag)
+        
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressed))
+        self.plusButton.addGestureRecognizer(longPressRecognizer)
     }
+    
+    @objc func longPressed(sender: UILongPressGestureRecognizer) {
+        if sender.state == .began {
+            self.plusButton.isHidden = true
+        }
+    }
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        if event?.subtype == .motionShake {
+            self.plusButton.isHidden = false
+        }
+    }
+    
+    var bag = Set<AnyCancellable>()
     
     //MARK: IBAction(s)
     
@@ -84,6 +112,8 @@ class ViewController: UIViewController {
         sequence.text = brain.description
     }
     
+    
+    
     @IBAction func performOperation(_ sender: UIButton) {
         
         if userIsInTheMiddleOfTyping {
@@ -92,14 +122,25 @@ class ViewController: UIViewController {
         }
         
         if let mathematicalSymbol = sender.currentTitle {
-            brain.performOperation(mathematicalSymbol)
+            brain.performOperation(mathematicalSymbol) { [weak self] in
+                if let result = self?.brain.result {
+                    self?.displayValue = result
+                }
+                
+                self?.sequence.text = self?.brain.description
+            }
         }
-        
-        if let result = brain.result {
-            displayValue = result
-        }
-        
-        sequence.text = brain.description
     }
 }
+
+
+
+extension Notification.Name {
+    static var AsyncOperationStarted = Notification.Name("async.operation.started")
+    static var AsyncOperationEnded = Notification.Name("async.operation.ended")
+}
+
+
+
+
 

@@ -1,3 +1,18 @@
+# Code Assignment
+
+This is work is based on work of 
+'''
+https://github.com/or1onsli/Calculator.git
+'''
+
+Req.1 User interface is completely designed in previous work on stack basis. 
+Req.2 Basic operations are done, just added sin and cos as uniary operations.
+Req.3 Online bitcoin operation was added. during async, there is an overlay to disable operations during server call. 
+Req.4 Featue toggling was added just for the plus button, when long pressed on + button is disappear and when shaked the phone you get it back
+Req. 5 Error feedback not implemented, similar to overlay it could be.
+Req.6 This feature works in the original code
+
+I got to implement up to this point, in about 4.5 hours
 # Calculator 
 ![Build](https://img.shields.io/badge/build-passed-brightgreen.svg)
 ![GitHub license](https://img.shields.io/badge/license-MIT-yellowgreen.svg)
